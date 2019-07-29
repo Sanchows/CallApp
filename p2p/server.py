@@ -8,14 +8,11 @@ peers_data = []
 async def processing(reader, writer):
     peername = writer.get_extra_info('peername')
     
-    
     peer_data = {'peername': peername, 'writer': writer}
-    
     
     print(f"Connected peer {peername}")
 
     if len(peers) > 0:
-       # pdd = json.dumps(peer_data['peername'], default=lambda o: o.__dict__)
         for dct in peers_data:
             wr = dct['writer']
             wr.write(f'NEW PEER: {peername}'.encode())
