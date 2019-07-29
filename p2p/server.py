@@ -7,16 +7,26 @@ peers_data = []
 
 async def processing(reader, writer):
     peername = writer.get_extra_info('peername')
-    peers.append(peername) 
+    
     
     peer_data = {'peername': peername, 'writer': writer}
-    peers_data.append(peer_data)
+    
     
     print(f"Connected peer {peername}")
 
+    if len(peers) > 0:
+       # pdd = json.dumps(peer_data['peername'], default=lambda o: o.__dict__)
+        for dct in peers_data:
+            wr = dct['writer']
+            wr.write(f'NEW PEER: {peername}'.encode())
+            await wr.drain()
+    
+    peers.append(peername) 
+    peers_data.append(peer_data)
+
     while True:
         try:
-            await asyncio.sleep(0.01)
+            await asyncio.sleep(2)
             pd = json.dumps(peers, default=lambda o: o.__dict__)
 
             writer.write(pd.encode())
