@@ -1,23 +1,36 @@
 import asyncio
-import sys
-import pickle
+import json
 
-class Main():
-    async def tcp_echo_client(self):
 
-        reader, writer = await asyncio.open_connection(
-            'localhost', 8888)
+class EchoClientProtocol(asyncio.Protocol):
+    def __init__(self, on_con_lost, loop):
+        self.loop = loop
+        self.on_con_lost = on_con_lost
 
-        while True:
-            writer.write('HELLO!'.encode())
-            await writer.drain()
-            peers = await reader.read(256)
-            
-            print(pickle.loads(peers))
+    def data_received(self, data):
+        if not data:
+            pass
+        
+        print('Data received: {}'.format(data.decode()))
 
-        print('Close the connection')
-        writer.close()
-try:
-    asyncio.run(Main().tcp_echo_client())
-except KeyboardInterrupt:
-    sys.exit(0)
+    def connection_lost(self, exc):
+        print('The server closed the connection')
+        self.on_con_lost.set_result(True)
+
+
+async def main():
+    loop = asyncio.get_running_loop()
+
+    on_con_lost = loop.create_future()
+
+    transport, protocol = await loop.create_connection(
+        lambda: EchoClientProtocol(on_con_lost, loop),
+        '127.0.0.1', 8889)
+
+    try:
+        await on_con_lost
+    finally:
+        transport.close()
+
+
+asyncio.run(main())
