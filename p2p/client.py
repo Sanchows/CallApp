@@ -10,8 +10,14 @@ class EchoClientProtocol(asyncio.Protocol):
     def data_received(self, data):
         if not data:
             pass
+
+        msg = data.decode()
         
-        print('Data received: {}'.format(data.decode()))
+        if msg == '.':
+            return
+        
+        print('Data received: {}'.format(msg))
+
 
     def connection_lost(self, exc):
         print('The server closed the connection')

@@ -11,22 +11,29 @@ async def processing(reader, writer):
     peer_data = {'peername': peername, 'writer': writer}
     
     print(f"Connected peer {peername}")
+    
+    # send information to peer about connected peer
+    pd = json.dumps(peers)
 
+    writer.write('peers'.encode() + pd.encode())
+    await writer.drain()
+    # -
+
+    # send information to peers about new connection of peer to the server
     if len(peers) > 0:
         for dct in peers_data:
             wr = dct['writer']
             wr.write(f'NEW PEER: {peername}'.encode())
             await wr.drain()
+    # -
     
     peers.append(peername) 
     peers_data.append(peer_data)
 
     while True:
         try:
-            await asyncio.sleep(2)
-            pd = json.dumps(peers, default=lambda o: o.__dict__)
-
-            writer.write(pd.encode())
+            await asyncio.sleep(0.01)
+            writer.write('.'.encode())
             await writer.drain()
 
         except ConnectionResetError:
